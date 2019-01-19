@@ -9,13 +9,14 @@
 
 #define filename "(1).txt"
 
+
 int main() {
-  image_attribute_t image_attribute{.image_heigh = 200, .image_width = 40};
+  image_attribute_t image_attribute;
+  image_attribute.image_heigh = 40;
+  image_attribute.image_width = 200;
   std::vector<std::vector<uint8_t>> image;
   std::ifstream image_txt(filename, std::ios::binary);
   rotation_angle_t rotation_angle;
-
-
 
   if (!image_txt.is_open()) {
     std::cout << "failed to open " << filename << '\n';
@@ -36,23 +37,8 @@ int main() {
     }
     image.push_back(line);
   }
-  rotation_angle = image_process(image);
-  std::cout << rotation_angle.now <<rotation_angle.next << '\n';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  rotation_angle = image_process(image, image_attribute);
+  std::cout << rotation_angle.now << " " << rotation_angle.next << '\n';
 
   // std::ofstream f_out("(1)threshold.txt");
   // for (int i = 0; i < 40; i++) {
@@ -87,7 +73,6 @@ int main() {
   //   }
   //   f_out << "]" << std::endl;
   // }
-
 
   return 0;
 }

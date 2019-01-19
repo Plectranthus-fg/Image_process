@@ -5,7 +5,8 @@ extern int scan_radius;
 extern int image_heigh, image_width;
 extern std::vector<double> control_angle;
 
-struct image_attribute_t {
+class image_attribute_t {
+public:
   int image_heigh;
   int image_width;
 };
@@ -48,6 +49,7 @@ public:
   double total;
 };
 
-rotation_angle_t image_process(std::vector<std::vector<uint8_t>>);
+rotation_angle_t
+image_process(std::vector<std::vector<uint8_t>> , image_attribute_t &image_attribute);
 std::vector<std::vector<uint8_t>>
 threshold(std::vector<std::vector<uint8_t>> &image , image_attribute_t &image_attribute);

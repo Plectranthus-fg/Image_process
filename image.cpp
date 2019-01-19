@@ -10,8 +10,9 @@ data_fluctuation_t data_fluctuation;
 angle_calc_point_t angle_calc_point;
 location_point_t location_point;
 rotation_angle_t rotation_angle;
-int scan_radius = 80;       //道路扫描半径
-int road_width, real_width; //宽度的平方 单位为像素点
+int scan_radius = 80; //道路扫描半径
+int road_width = image_attribute.image_heigh,
+    real_width; //宽度的平方 单位为像素点
 
 //灰度图像自适应二值化
 std::vector<std::vector<uint8_t>>
@@ -22,8 +23,8 @@ threshold(std::vector<std::vector<uint8_t>> &image,
   colour_CDF.resize(256);
   int colour_threshold = 127; //二值化阈值
   //计算灰度直方图
-  for (int i = 0; i < image_attribute.image_width; i++) {
-    for (int j = 0; j < image_attribute.image_heigh; j++) {
+  for (int i = 0; i < image_attribute.image_heigh; i++) {
+    for (int j = 0; j < image_attribute.image_width; j++) {
       colour[image[i][j]] += 1;
     }
   }
@@ -58,8 +59,8 @@ threshold(std::vector<std::vector<uint8_t>> &image,
     }
   }
 
-  for (int i = 0; i < image_attribute.image_width; i++) {
-    for (int j = 0; j < image_attribute.image_heigh; j++) {
+  for (int i = 0; i < image_attribute.image_heigh; i++) {
+    for (int j = 0; j < image_attribute.image_width; j++) {
       image[i][j] = colour_map[image[i][j]];
       if (image[i][j] <= colour_threshold) {
         image[i][j] = 0x00;
@@ -74,7 +75,8 @@ threshold(std::vector<std::vector<uint8_t>> &image,
 
 double angle_calc(centre_point_t &centre_point,
                   rotation_angle_t &rotation_angle,
-                  std::vector<std::vector<uint8_t>> &image) {
+                  std::vector<std::vector<uint8_t>> &image,
+                  image_attribute_t image_attribute) {
   //计算所有计算圆周上的点
   std::vector<circle_point_t> circle;
   int i = 0;
@@ -96,11 +98,11 @@ double angle_calc(centre_point_t &centre_point,
         circle[i + 1].x < image_attribute.image_width &&
         circle[i].y < image_attribute.image_heigh &&
         circle[i + 1].y < image_attribute.image_heigh) {
-      if (image[circle[i].x][circle[i].y] !=
-          image[circle[i + 1].x][circle[i + 1].y]) {
+      if (image[circle[i].y][circle[i].x] !=
+          image[circle[i + 1].y][circle[i + 1].x]) {
         fluctuation_cache.x = circle[i].x;
         fluctuation_cache.y = circle[i].y;
-        if (image[circle[i].x][circle[i].y] == 0xFF) {
+        if (image[circle[i].y][circle[i].x] == 0xFF) {
           fluctuation_cache.changetype = false;
         } else {
           fluctuation_cache.changetype = true;
@@ -146,15 +148,14 @@ double angle_calc(centre_point_t &centre_point,
         1;
     angle = atan((angle_calc_point.x - location_point.x) /
                  (angle_calc_point.y - location_point.y));
-
-    centre_point.x = angle_calc_point.x;
     centre_point.y = angle_calc_point.y;
     rotation_angle.total = angle;
   }
   return (angle - rotation_angle.now);
 }
 
-rotation_angle_t image_process(std::vector<std::vector<uint8_t>> image) {
+rotation_angle_t image_process(std::vector<std::vector<uint8_t>> image,
+                               image_attribute_t &image_attribute) {
 
   centre_point.x = 100;
   centre_point.y = 0; //起始点
@@ -162,7 +163,9 @@ rotation_angle_t image_process(std::vector<std::vector<uint8_t>> image) {
 
   image = threshold(image, image_attribute); //此处二值化 black:0xFF white:0x00
 
-  rotation_angle.now = angle_calc(centre_point, rotation_angle, image);
-  rotation_angle.next = angle_calc(centre_point, rotation_angle, image);
+  rotation_angle.now =
+      angle_calc(centre_point, rotation_angle, image, image_attribute);
+  rotation_angle.next =
+      angle_calc(centre_point, rotation_angle, image, image_attribute);
   return rotation_angle;
 }
