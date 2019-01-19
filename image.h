@@ -46,7 +46,6 @@ public:
   double now;
   double next;
   double total;
-  bool error;
 };
 
 rotation_angle_t image_process(std::vector<std::vector<uint8_t>>);
