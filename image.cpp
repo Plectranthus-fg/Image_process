@@ -37,7 +37,7 @@ threshold(std::vector<std::vector<uint8_t>> &image,
   for (int i = 1; i < 256; i++) {
     colour_CDF[i] = colour_CDF[i - 1] + colour[i];
   }
-  for (int i = 0; i < 256; i++) {
+  for (int i = 5; i < 256; i++) {
     if (colour_CDF[i] != 0 && colour[i] >= frequency_threshold) {
       colour_CDF_min = i;
       break;
