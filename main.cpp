@@ -9,7 +9,6 @@
 
 #define filename "(1).txt"
 
-
 int main() {
   image_attribute_t image_attribute;
   image_attribute.image_heigh = 40;
