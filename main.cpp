@@ -21,9 +21,9 @@ int main() {
     std::cout << "failed to open " << filename << '\n';
   }
 
-  for (int i = 0; i < 40; i++) {
+  for (int i = 0; i <  image_attribute.image_heigh; i++) {
     std::vector<uint8_t> line;
-    for (int j = 0; j < 200; j++) {
+    for (int j = 0; j < image_attribute.image_width; j++) {
 
       std::string word;
       std::stringstream buf;
