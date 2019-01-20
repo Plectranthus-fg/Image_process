@@ -13,6 +13,7 @@ point_t angle_calc_point;
 rotation_angle_t rotation_angle;
 int scan_radius = 60; //道路扫描半径
 int road_width = image_attribute.image_heigh;
+double distortion_coefficient = 0.5;
 
 //灰度图像自适应二值化
 std::vector<std::vector<uint8_t>>
@@ -83,8 +84,11 @@ double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
        x++) {
     point_t circle_cache;
     circle_cache.x = x;
-    int b = image_attribute.image_heigh - 1,
-        a = scan_radius; // a为椭圆长半轴，b为椭圆短半轴
+    int b, a = scan_radius; // a为椭圆长半轴，b为椭圆短半轴
+    b = a * distortion_coefficient;
+    if (b > image_attribute.image_heigh - 1) {
+      b = image_attribute.image_heigh - 1;
+    }
     circle_cache.y = (int)round(
         sqrt(b * b *
              (1 - (double)pow(abs(x - centre_point.x), 2) / (double)(a * a))));
