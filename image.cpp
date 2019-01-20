@@ -4,15 +4,15 @@
 #include <vector>
 
 image_attribute_t image_attribute;
-centre_point_t centre_point;
-circle_point_t circle_point;
+point_t centre_point{
+    .x = 100,
+    .y = 0,
+};
 data_fluctuation_t data_fluctuation;
-angle_calc_point_t angle_calc_point;
-location_point_t location_point;
+point_t angle_calc_point;
 rotation_angle_t rotation_angle;
-int scan_radius = 80; //道路扫描半径
-int road_width = image_attribute.image_heigh,
-    real_width; //宽度的平方 单位为像素点
+int scan_radius = 60; //道路扫描半径
+int road_width = image_attribute.image_heigh;
 
 //灰度图像自适应二值化
 std::vector<std::vector<uint8_t>>
@@ -73,31 +73,30 @@ threshold(std::vector<std::vector<uint8_t>> &image,
   return image;
 }
 
-double angle_calc(centre_point_t &centre_point,
-                  rotation_angle_t &rotation_angle,
+double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
                   std::vector<std::vector<uint8_t>> &image,
                   image_attribute_t image_attribute) {
   //计算所有计算圆周上的点
-  std::vector<circle_point_t> circle;
+  std::vector<point_t> circle;
   int i = 0;
   for (int x = centre_point.x - scan_radius; x <= centre_point.x + scan_radius;
        x++) {
-    circle_point_t circle_cache;
+    point_t circle_cache;
     circle_cache.x = x;
+    int b = image_attribute.image_heigh - 1,
+        a = scan_radius; // a为椭圆长半轴，b为椭圆短半轴
     circle_cache.y = (int)round(
-        sqrt(scan_radius * scan_radius - pow(x - centre_point.x, 2)));
+        sqrt(b * b *
+             (1 - (double)pow(abs(x - centre_point.x), 2) / (double)(a * a))));
     circle.push_back(circle_cache);
   }
-
+  centre_point.y = image_attribute.image_heigh - 1 - centre_point.y;
   //找到所有跳变点，存入fluctuation中
   std::vector<data_fluctuation_t>
       fluctuation; // white-to-black = false ; black-to-white =true;
   for (i = 0; i < circle.size() - 1; i++) {
     data_fluctuation_t fluctuation_cache;
-    if (circle[i].x < image_attribute.image_width &&
-        circle[i + 1].x < image_attribute.image_width &&
-        circle[i].y < image_attribute.image_heigh &&
-        circle[i + 1].y < image_attribute.image_heigh) {
+    if (circle[i].y >= 0 && circle[i + 1].y >= 0) {
       if (image[circle[i].y][circle[i].x] !=
           image[circle[i + 1].y][circle[i + 1].x]) {
         fluctuation_cache.x = circle[i].x;
@@ -113,15 +112,16 @@ double angle_calc(centre_point_t &centre_point,
   }
 
   //道路识别
+  int real_width;      //宽度的平方 单位为像素点
   int selected_points; //选定第一个点（靠左侧）
   int width_diff = image_attribute.image_width;
   int width_diff_cache;
   for (i = 0; i < (int)(fluctuation.size() - 1); i++) {
-    if (fluctuation[i].changetype == false &&
-        fluctuation[i + 1].changetype == true) {
+    if (fluctuation[i].changetype == true &&
+        fluctuation[i + 1].changetype == false) {
       real_width =
-          (int)round(pow((fluctuation[i].x - fluctuation[i + 1].x), 2) +
-                     pow((fluctuation[i].y - fluctuation[i + 1].y), 2));
+          (int)round(sqrt(pow((fluctuation[i].x - fluctuation[i + 1].x), 2) +
+                          pow((fluctuation[i].y - fluctuation[i + 1].y), 2)));
       width_diff_cache = abs(road_width - real_width);
       if (width_diff_cache <= width_diff) {
         selected_points = i;
@@ -146,9 +146,11 @@ double angle_calc(centre_point_t &centre_point,
     angle_calc_point.y =
         (fluctuation[selected_points].y + fluctuation[selected_points + 1].y) >>
         1;
-    angle = atan((angle_calc_point.x - location_point.x) /
-                 (angle_calc_point.y - location_point.y));
-    centre_point.y = angle_calc_point.y;
+    angle = atan((double)(angle_calc_point.x - centre_point.x) /
+                 (double)(angle_calc_point.y - centre_point.y)) *
+            180 / M_PI;
+    centre_point.x = angle_calc_point.x;
+    centre_point.y = image_attribute.image_heigh - 1 - centre_point.y;
     rotation_angle.total = angle;
   }
   return (angle - rotation_angle.now);
@@ -165,7 +167,8 @@ rotation_angle_t image_process(std::vector<std::vector<uint8_t>> image,
 
   rotation_angle.now =
       angle_calc(centre_point, rotation_angle, image, image_attribute);
-  rotation_angle.next =
-      angle_calc(centre_point, rotation_angle, image, image_attribute);
+  //第二次预测计算
+  // rotation_angle.next =
+  //     angle_calc(centre_point, rotation_angle, image, image_attribute);
   return rotation_angle;
 }

@@ -11,33 +11,20 @@ public:
   int image_width;
 };
 
-class centre_point_t {
+class point_t {
 public:
   int x;
   int y;
+// template <typename T>
+  // T assign_y(const T &a){
+  //     y = image_attribute.image_heigh - 1 - a;
+  // }
 };
 
-class circle_point_t {
-public:
-  int x;
-  int y;
-};
 
 class data_fluctuation_t {
 public:
   bool changetype;
-  int x;
-  int y;
-};
-
-class angle_calc_point_t {
-public:
-  int x;
-  int y;
-};
-
-class location_point_t {
-public:
   int x;
   int y;
 };
