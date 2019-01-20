@@ -150,11 +150,12 @@ double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
     angle_calc_point.y =
         (fluctuation[selected_points].y + fluctuation[selected_points + 1].y) >>
         1;
-    angle = atan((double)(angle_calc_point.x - centre_point.x) /
+    angle_calc_point.y = image_attribute.image_heigh - 1 - angle_calc_point.y;
+centre_point.y = image_attribute.image_heigh - 1 - centre_point.y;    angle = atan((double)(angle_calc_point.x - centre_point.x) /
                  (double)(angle_calc_point.y - centre_point.y)) *
             180 / M_PI;
     centre_point.x = angle_calc_point.x;
-    centre_point.y = image_attribute.image_heigh - 1 - centre_point.y;
+    centre_point.y = angle_calc_point.y;
     rotation_angle.total = angle;
   }
   return (angle - rotation_angle.now);
