@@ -5,6 +5,7 @@ extern int scan_radius;
 extern int image_heigh, image_width;
 extern std::vector<double> control_angle;
 
+
 class image_attribute_t {
 public:
   int image_heigh;
