@@ -1,76 +1,114 @@
 #include "image.h"
 #include <cmath>
+#include <iostream>
 
-//灰度图像自适应二值化
-std::vector<std::vector<uint8_t>>
-threshold(std::vector<std::vector<uint8_t>> &image,
-          image_attribute_t &image_attribute)
-{
-    std::vector<int> colour, colour_CDF, colour_map;
-    colour.resize(256);
-    colour_CDF.resize(256);
-    int colour_threshold = 127; //二值化阈值
-    //计算灰度直方图
-    for (int i = 0; i < image_attribute.image_heigh; i++)
-    {
-        for (int j = 0; j < image_attribute.image_width; j++)
-        {
-            colour[image[i][j]] += 1;
-        }
-    }
+namespace image_process{
+  uint8_t otsu_threshold(std::vector<int> &histogram,
+                         image_attribute_t &image_attribute) {
+    int sumB = 0;
+    int sum1 = 0;
+    double wB = 0.0;
+    double wF = 0.0;
+    double mF = 0.0;
+    double max_var = 0.0;
+    double inter_var = 0.0;
+    uint8_t threshold = 0;
+    uint8_t index_histo = 0;
+    int pixel_total = image_attribute.image_heigh * image_attribute.image_width;
 
-    //计算灰度直方图累积分布函数
-    colour_CDF[0] = colour[0];
-    int colour_CDF_min;
-    int frequency_threshold = 5; //灰度频率阈值
-    for (int i = 1; i < 256; i++)
-    {
-        colour_CDF[i] = colour_CDF[i - 1] + colour[i];
-    }
-    for (int i = 5; i < 256; i++)
-    {
-        if (colour_CDF[i] != 0 && colour[i] >= frequency_threshold)
-        {
-            colour_CDF_min = i;
-            break;
-        }
-    }
-    int colour_diff = 256;
-    int selected_colour;
-    for (int i = 0; i < 256; i++)
-    {
-        if (colour[i] != 0 && (colour_CDF[i] - colour_CDF_min) >= 0)
-        {
-            colour_map.push_back((int)round(
-                (colour_CDF[i] - colour_CDF_min) /
-                (double)((image_attribute.image_width * image_attribute.image_heigh) -
-                         colour_CDF_min) *
-                255));
-            // if ((colour_map[i] - colour[i]) <= colour_diff) {
-            //   colour_threshold = i;
-            // }
-        }
-        else
-        {
-            colour_map.push_back(0);
-        }
+    for (index_histo = 1; index_histo < 256; ++index_histo) {
+      sum1 += index_histo * histogram[index_histo];
     }
 
-    for (int i = 0; i < image_attribute.image_heigh; i++)
-    {
-        for (int j = 0; j < image_attribute.image_width; j++)
-        {
-            image[i][j] = colour_map[image[i][j]];
-            if (image[i][j] <= colour_threshold)
-            {
-                image[i][j] = 0x00;
-            }
-            else
-            {
-                image[i][j] = 0xFF;
-            }
-        }
+    for (index_histo = 1; index_histo < 256; ++index_histo) {
+      wB = wB + histogram[index_histo];
+      wF = pixel_total - wB;
+      if (wB == 0 || wF == 0) {
+        continue;
+      }
+      sumB = sumB + index_histo * histogram[index_histo];
+      mF = (sum1 - sumB) / wF;
+      inter_var = wB * wF * ((sumB / wB) - mF) * ((sumB / wB) - mF);
+      if (inter_var >= max_var) {
+        threshold = index_histo;
+        max_var = inter_var;
+      }
+    }
+
+    return threshold;
+  }
+
+  std::vector<int>
+  frequency_distribution_function(std::vector<std::vector<uint8_t>> &image,
+                                  image_attribute_t &image_attribute) {
+    // calculate grayscale histogram
+    std::vector<int> grayscale;
+    for (int i = 0; i < image_attribute.image_heigh; i++) {
+      for (int j = 0; j < image_attribute.image_width; j++) {
+        grayscale[image[i][j]] += 1;
+      }
+    }
+    return grayscale;
+  }
+
+  std::vector<std::vector<uint8_t>>
+  image_equalize(std::vector<std::vector<uint8_t>> &image,
+                 image_attribute_t &image_attribute) {
+    std::vector<int> grayscale, grayscale_CDF, grayscale_map;
+    grayscale.resize(256);
+    grayscale_CDF.resize(256);
+    int grayscale_threshold;
+
+    grayscale = frequency_distribution_function(image, image_attribute);
+
+    // calculate cumulative distribution function
+    grayscale_CDF[0] = grayscale[0];
+    int grayscale_CDF_min;
+    for (int i = 1; i < 256; i++) {
+      grayscale_CDF[i] = grayscale_CDF[i - 1] + grayscale[i];
+    }
+
+    for (int i = 5; i < 256; i++) {
+      if (grayscale_CDF[i] != 0) {
+        grayscale_CDF_min = i;
+        break;
+      }
+    }
+
+    // remap the value of grayscale
+    double numberator =
+        (image_attribute.image_width * image_attribute.image_heigh) -
+        grayscale_CDF_min;
+    for (int i = 0; i < 256; i++) {
+      if (grayscale[i] != 0 && (grayscale_CDF[i] - grayscale_CDF_min) >= 0) {
+        grayscale_map.push_back((int)round(
+            (grayscale_CDF[i] - grayscale_CDF_min) / numberator * 255));
+      } else {
+        grayscale_map.push_back(0);
+      }
+    }
+
+    for (int i = 0; i < image_attribute.image_heigh; i++) {
+      for (int j = 0; j < image_attribute.image_width; j++) {
+        image[i][j] = grayscale_map[image[i][j]];
+      }
     }
 
     return image;
+  }
+
+  std::vector<std::vector<uint8_t>>
+  image_threshold(std::vector<std::vector<uint8_t>> &image,
+                  image_attribute_t &image_attribute, uint8_t threshold) {
+    for (int i = 0; i < image_attribute.image_heigh; i++) {
+      for (int j = 0; j < image_attribute.image_width; j++) {
+        if (image[i][j] <= threshold) {
+          image[i][j] = 0;
+        } else {
+          image[i][j] = 255;
+        }
+      }
+    }
+    return image;
+  }
 }

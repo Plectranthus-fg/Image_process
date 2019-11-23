@@ -5,7 +5,6 @@ extern int scan_radius;
 extern int image_heigh, image_width;
 extern std::vector<double> control_angle;
 
-
 class image_attribute_t {
 public:
   int image_heigh;
@@ -16,12 +15,11 @@ class point_t {
 public:
   int x;
   int y;
-// template <typename T>
+  // template <typename T>
   // T assign_y(const T &a){
   //     y = image_attribute.image_heigh - 1 - a;
   // }
 };
-
 
 class data_fluctuation_t {
 public:
@@ -37,7 +35,19 @@ public:
   double total;
 };
 
-rotation_angle_t
-image_process(std::vector<std::vector<uint8_t>> , image_attribute_t &image_attribute);
+// rotation_angle_t image_process(std::vector<std::vector<uint8_t>>,
+//                                image_attribute_t &image_attribute);
+
+namespace image_process {
+uint8_t otsu_threshold(std::vector<int> &histogram,
+                       image_attribute_t &image_attribute);
+std::vector<int>
+frequency_distribution_function(std::vector<std::vector<uint8_t>> &image,
+                                image_attribute_t &image_attribute);
 std::vector<std::vector<uint8_t>>
-threshold(std::vector<std::vector<uint8_t>> &image , image_attribute_t &image_attribute);
+image_equalize(std::vector<std::vector<uint8_t>> &image,
+               image_attribute_t &image_attribute);
+std::vector<std::vector<uint8_t>>
+image_threshold(std::vector<std::vector<uint8_t>> &image,
+                image_attribute_t &image_attribute, uint8_t threshold);
+} // namespace image_process

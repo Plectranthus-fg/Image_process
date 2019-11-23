@@ -10,9 +10,10 @@
 #define filename "(1).txt"
 
 int main() {
-  image_attribute_t image_attribute;
-  image_attribute.image_heigh = 40;
-  image_attribute.image_width = 200;
+  image_attribute_t image_attribute{
+      .image_heigh = 40,
+      .image_width = 200,
+  };
   std::vector<std::vector<uint8_t>> image;
   std::ifstream image_txt(filename, std::ios::binary);
   rotation_angle_t rotation_angle;
@@ -36,7 +37,7 @@ int main() {
     }
     image.push_back(line);
   }
-  rotation_angle = image_process(image, image_attribute);
+  // rotation_angle = image_process(image, image_attribute);
   std::cout << rotation_angle.now << '\n';
 
   // std::ofstream f_out("(1)threshold.txt");
