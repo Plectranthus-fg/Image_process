@@ -37,7 +37,7 @@ int main() {
     }
     image.push_back(line);
   }
-  // rotation_angle = image_process(image, image_attribute);
+  rotation_angle = image_process::image_preprocess(image, image_attribute);
   std::cout << rotation_angle.now << '\n';
 
   // std::ofstream f_out("(1)threshold.txt");

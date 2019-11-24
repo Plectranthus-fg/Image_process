@@ -11,6 +11,7 @@ public:
   int image_width;
 };
 
+
 class point_t {
 public:
   int x;
@@ -24,8 +25,7 @@ public:
 class data_fluctuation_t {
 public:
   bool changetype;
-  int x;
-  int y;
+  point_t coordinatel;
 };
 
 class rotation_angle_t {
@@ -35,10 +35,9 @@ public:
   double total;
 };
 
-// rotation_angle_t image_process(std::vector<std::vector<uint8_t>>,
-//                                image_attribute_t &image_attribute);
 
 namespace image_process {
+// image preprocess
 uint8_t otsu_threshold(std::vector<int> &histogram,
                        image_attribute_t &image_attribute);
 std::vector<int>
@@ -48,6 +47,10 @@ std::vector<std::vector<uint8_t>>
 image_equalize(std::vector<std::vector<uint8_t>> &image,
                image_attribute_t &image_attribute);
 std::vector<std::vector<uint8_t>>
-image_threshold(std::vector<std::vector<uint8_t>> &image,
+image_binarize(std::vector<std::vector<uint8_t>> &image,
                 image_attribute_t &image_attribute, uint8_t threshold);
+
+// image calculate
+rotation_angle_t image_preprocess(std::vector<std::vector<uint8_t>>,
+                               image_attribute_t &image_attribute);
 } // namespace image_process
