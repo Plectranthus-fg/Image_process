@@ -144,7 +144,7 @@ image_binarize(std::vector<std::vector<uint8_t>> &image,
   edited by: Plectranthus_fg
   description: calculate the yaw, the yaw means the angle between the course
   angle and the midline of road
-  *** usable but not fully optimized ***
+  !!! unusable, algorithm should be thoroughly checked !!!
 */
 double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
                   std::vector<std::vector<uint8_t>> &image,
@@ -162,7 +162,7 @@ double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
   0 < e < 1
   if e = 0, the ellipse become a circle
   */
-  double eccentricity = 0;
+  double eccentricity = 0.5;
 
   //计算所有计算圆周上的点
   // the default situation is that major axis is on the x axis
@@ -184,6 +184,7 @@ double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
     circle_cache.y = (int)round(
         sqrt(b_square *
              (1 - (double)pow(abs(x - centre_point.x), 2) / (double)a_square)));
+    std::cout << circle_cache.x << " " << circle_cache.y << std::endl;
     circle.push_back(circle_cache);
   }
   centre_point.y = image_attribute.image_heigh - 1 - centre_point.y;
@@ -193,18 +194,17 @@ double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
       fluctuation; // white-to-black = false ; black-to-white =true;
   for (i = 0; i < circle.size() - 1; i++) {
     data_fluctuation_t fluctuation_cache;
-    if (circle[i].y >= 0 && circle[i + 1].y >= 0) {
-      if (image[circle[i].y][circle[i].x] !=
-          image[circle[i + 1].y][circle[i + 1].x]) {
-        fluctuation_cache.coordinatel.x = circle[i].x;
-        fluctuation_cache.coordinatel.y = circle[i].y;
-        if (image[circle[i].y][circle[i].x] == 0xFF) {
-          fluctuation_cache.changetype = false;
-        } else {
-          fluctuation_cache.changetype = true;
-        }
-        fluctuation.push_back(fluctuation_cache);
+
+    if (image[circle[i].y][circle[i].x] !=
+        image[circle[i + 1].y][circle[i + 1].x]) {
+      fluctuation_cache.coordinatel.x = circle[i].x;
+      fluctuation_cache.coordinatel.y = circle[i].y;
+      if (image[circle[i].y][circle[i].x] == 0xFF) {
+        fluctuation_cache.changetype = false;
+      } else {
+        fluctuation_cache.changetype = true;
       }
+      fluctuation.push_back(fluctuation_cache);
     }
   }
 
@@ -234,6 +234,10 @@ double angle_calc(point_t &centre_point, rotation_angle_t &rotation_angle,
   else
     road_width = 0.3 * road_width + 0.7 * real_width;
 
+  std::cout << fluctuation[selected_points].coordinatel.x << " "
+            << fluctuation[selected_points].coordinatel.y << std::endl;
+  std::cout << fluctuation[selected_points + 1].coordinatel.x << " "
+            << fluctuation[selected_points + 1].coordinatel.y << std::endl;
   //角度计算
   double angle;
   if (fluctuation.size() < 2) {
