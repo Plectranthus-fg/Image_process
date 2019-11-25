@@ -1,56 +1,44 @@
 #include <cstdint>
 #include <vector>
+#include <cmath>
 
-extern int scan_radius;
-extern int image_heigh, image_width;
-extern std::vector<double> control_angle;
-
-class image_attribute_t {
-public:
-  int image_heigh;
-  int image_width;
+class ImageAttribute {
+  public:
+    int image_heigh_;
+    int image_width_;
 };
 
-
-class point_t {
-public:
-  int x;
-  int y;
-  // template <typename T>
-  // T assign_y(const T &a){
-  //     y = image_attribute.image_heigh - 1 - a;
-  // }
+class Point {
+  public:
+    int x_;
+    int y_;
 };
 
-class data_fluctuation_t {
-public:
-  bool changetype;
-  point_t coordinatel;
+class DataFluctuation {
+  public:
+    bool changetype_;
+    Point coordinatel;
 };
 
-class rotation_angle_t {
-public:
-  double now;
-  double next;
-  double total;
+class RotationAngle {
+  public:
+    double now_;
+    double next_;
+    double total_;
 };
-
 
 namespace image_process {
 // image preprocess
-uint8_t otsu_threshold(std::vector<int> &histogram,
-                       image_attribute_t &image_attribute);
+uint8_t OtsuMethod(std::vector<int> &histogram,
+                       ImageAttribute &image_attribute);
 std::vector<int>
-frequency_distribution_function(std::vector<std::vector<uint8_t>> &image,
-                                image_attribute_t &image_attribute);
+FrequencyDistributionFunction(std::vector<std::vector<uint8_t>> &image,
+                                ImageAttribute &image_attribute);
 std::vector<std::vector<uint8_t>>
-image_equalize(std::vector<std::vector<uint8_t>> &image,
-               image_attribute_t &image_attribute);
+ImageEqualize(std::vector<std::vector<uint8_t>> &image,
+               ImageAttribute &image_attribute);
 std::vector<std::vector<uint8_t>>
-image_binarize(std::vector<std::vector<uint8_t>> &image,
-                image_attribute_t &image_attribute, uint8_t threshold);
+ImageBinarize(std::vector<std::vector<uint8_t>> &image,
+               ImageAttribute &image_attribute, uint8_t threshold);
 
-// image calculate
-rotation_angle_t image_preprocess(std::vector<std::vector<uint8_t>>,
-                               image_attribute_t &image_attribute);
 } // namespace image_process

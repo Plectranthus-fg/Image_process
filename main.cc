@@ -1,4 +1,4 @@
-#include "image.h"
+#include "image_calc.h"
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
@@ -10,21 +10,21 @@
 #define filename "(1).txt"
 
 int main() {
-  image_attribute_t image_attribute{
-      .image_heigh = 40,
-      .image_width = 200,
+  ImageAttribute image_attribute{
+      .image_heigh_ = 40,
+      .image_width_ = 200,
   };
   std::vector<std::vector<uint8_t>> image;
   std::ifstream image_txt(filename, std::ios::binary);
-  rotation_angle_t rotation_angle;
+  RotationAngle rotation_angle;
 
   if (!image_txt.is_open()) {
     std::cout << "failed to open " << filename << '\n';
   }
 
-  for (int i = 0; i <  image_attribute.image_heigh; i++) {
+  for (int i = 0; i <  image_attribute.image_heigh_; i++) {
     std::vector<uint8_t> line;
-    for (int j = 0; j < image_attribute.image_width; j++) {
+    for (int j = 0; j < image_attribute.image_width_; j++) {
 
       std::string word;
       std::stringstream buf;
@@ -37,8 +37,8 @@ int main() {
     }
     image.push_back(line);
   }
-  rotation_angle = image_process::image_preprocess(image, image_attribute);
-  std::cout << rotation_angle.now << '\n';
+  rotation_angle = ImagePreprocess(image, image_attribute);
+  std::cout << rotation_angle.now_ << '\n';
 
   // std::ofstream f_out("(1)threshold.txt");
   // for (int i = 0; i < 40; i++) {
